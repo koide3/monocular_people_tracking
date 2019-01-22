@@ -45,10 +45,12 @@ public:
 
 private:
   void camera_info_callback(const sensor_msgs::CameraInfoConstPtr& camera_info_msg) {
-    this->camera_info_msg = camera_info_msg;
+      ROS_INFO("camera_info");
+      this->camera_info_msg = camera_info_msg;
   }
 
   void poses_callback(const tfpose_ros::PersonsConstPtr& poses_msg) {
+      ROS_INFO("pose_callback");
       if(camera_info_msg == nullptr) {
           ROS_INFO("waiting for the camera info msg...");
           return;
@@ -185,8 +187,10 @@ private:
       cv::putText(canvas, (boost::format("id:%d") % person->id()).str(), cv::Point(dist.first[0] - 15, dist.first[1] - 25), CV_FONT_HERSHEY_PLAIN, 1.0, cv::Scalar::all(255));
       cv::putText(canvas, (boost::format("tf:%.2f") % person->trace()).str(), cv::Point(dist.first[0] - 15, dist.first[1] - 15), CV_FONT_HERSHEY_PLAIN, 1.0, cv::Scalar::all(255));
 
-      Eigen::Vector3f neck_params = kkl::math::errorEllipse<float>(dist.second.block<2, 2>(0, 0), 3.0);
-      Eigen::Vector3f ankle_params = kkl::math::errorEllipse<float>(dist.second.block<2, 2>(2, 2), 3.0);
+      Eigen::Matrix2f neck_cov = dist.second.block<2, 2>(0, 0);
+      Eigen::Matrix2f ankle_cov = dist.second.block<2, 2>(2, 2);
+      Eigen::Vector3f neck_params = kkl::math::errorEllipse<float>(neck_cov, 3.0);
+      Eigen::Vector3f ankle_params = kkl::math::errorEllipse<float>(ankle_cov, 3.0);
 
       cv::RotatedRect neck(cv::Point2f(dist.first[0], dist.first[1]), cv::Size2f(neck_params[0], neck_params[1]), neck_params[2]);
       cv::RotatedRect ankle(cv::Point2f(dist.first[2], dist.first[3]), cv::Size2f(ankle_params[0], ankle_params[1]), ankle_params[2]);

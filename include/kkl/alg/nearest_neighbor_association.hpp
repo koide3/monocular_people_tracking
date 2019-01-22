@@ -20,9 +20,9 @@ template<typename Tracker, typename Observation>
 class NearestNeighborAssociation : public DataAssociation<Tracker, Observation> {
   typedef typename DataAssociation<Tracker, Observation>::Association Association;
 public:
-	// constructor, destructor
-	NearestNeighborAssociation() {}
-	virtual ~NearestNeighborAssociation() {}
+  // constructor, destructor
+  NearestNeighborAssociation() {}
+  virtual ~NearestNeighborAssociation() {}
 
   // associate
   std::vector<Association> associate(const std::vector<Tracker>& trackers, const std::vector<Observation>& observations) override {

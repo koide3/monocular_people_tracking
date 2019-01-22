@@ -18,7 +18,7 @@ PersonTracker::PersonTracker(const std::shared_ptr<TrackSystem>& track_system, c
   mean[2] = 1.6f;
 
   Eigen::MatrixXf cov = Eigen::MatrixXf::Identity(5, 5);
-  cov(2, 2) = 1e-1f;
+  cov(2, 2) = 1e-1;
 
   ukf.reset(new UnscentedKalmanFilter(track_system, mean, cov));
 

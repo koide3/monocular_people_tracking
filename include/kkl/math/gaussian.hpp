@@ -10,10 +10,6 @@
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 
-#ifdef _USE_BOOST_ERF
-#include <boost/math/special_functions/erf.hpp>
-#endif
-
 namespace kkl{
   namespace math{
 
@@ -27,14 +23,14 @@ double gaussianProbMul(const Eigen::Matrix<T, p, 1>& mean, const Eigen::Matrix<T
 }
 
 
-template<typename T, typename Matrix>
-Eigen::Matrix<T, 3, 1> errorEllipse(const Matrix& cov, double kai) {
+template<typename T>
+Eigen::Matrix<T, 3, 1> errorEllipse(const Eigen::Matrix<T, 2, 2>& cov, double kai) {
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix<T, 2, 2>> solver(cov);
 
   Eigen::Matrix<T, 3, 1> params;
   params[0] = std::sqrt(kai * kai * solver.eigenvalues()[1]);
   params[1] = std::sqrt(kai * kai * solver.eigenvalues()[0]);
-  params[2] = std::atan2(solver.eigenvectors()(0, 2), solver.eigenvectors()(1, 2));
+  params[2] = std::atan2(solver.eigenvectors()(0, 1), solver.eigenvectors()(1, 1));
 
   return params;
 }

@@ -61,6 +61,10 @@ void PeopleTracker::predict(const ros::Time& stamp) {
 }
 
 void PeopleTracker::correct(const ros::Time& stamp, const std::vector<Observation::Ptr>& observations) {
+  if(observations.empty()) {
+    return;
+  }
+
   std::vector<bool> associated(observations.size(), false);
   auto associations = data_association->associate(people, observations);
   for(const auto& assoc : associations) {

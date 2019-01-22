@@ -42,12 +42,16 @@ public:
 
   double prob(const Eigen::Vector2f& x) const {
     std::pair<Eigen::VectorXf, Eigen::MatrixXf> dist = expected_measurement_distribution();
-    return kkl::math::gaussianProbMul<float, 2>(dist.first, dist.second.block<2, 2>(0, 0), x);
+    Eigen::Vector2f mean = dist.first.head<2>();
+    Eigen::Matrix2f cov = dist.second.block<2, 2>(0, 0);
+    return kkl::math::gaussianProbMul<float, 2>(mean, cov, x);
   }
 
   double squared_mahalanobis_distance(const Eigen::Vector2f& x) const {
     std::pair<Eigen::VectorXf, Eigen::MatrixXf> dist = expected_measurement_distribution();
-    return kkl::math::squaredMahalanobisDistance<float, 2>(dist.first, dist.second.block<2, 2>(0, 0), x);
+    Eigen::Vector2f mean = dist.first.head<2>();
+    Eigen::Matrix2f cov = dist.second.block<2, 2>(0, 0);
+    return kkl::math::squaredMahalanobisDistance<float, 2>(mean, cov, x);
   }
 
   std::pair<Eigen::VectorXf, Eigen::MatrixXf> expected_measurement_distribution() const;
