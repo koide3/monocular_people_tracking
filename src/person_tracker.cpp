@@ -67,6 +67,14 @@ Eigen::Vector3f PersonTracker::pos() const {
   return ukf->mean.head<3>();
 }
 
+Eigen::Vector2f PersonTracker::vel() const {
+  return ukf->mean.tail<2>();
+}
+
+Eigen::MatrixXf PersonTracker::cov() const {
+  return ukf->cov;
+}
+
 
 class Projection : public cppoptlib::Problem<float> {
 public:
