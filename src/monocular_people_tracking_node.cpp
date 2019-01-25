@@ -88,10 +88,9 @@ private:
       people_tracker->predict(stamp);
       people_tracker->correct(stamp, observations);
 
-      // if(tracks_pub.getNumSubscribers()) {
-      //   tracks_pub.publish(create_msgs(poses_msg->header.stamp));
-      // }
-      tracks_pub.publish(create_msgs(poses_msg->header.stamp));
+      if(tracks_pub.getNumSubscribers()) {
+        tracks_pub.publish(create_msgs(poses_msg->header.stamp));
+      }
 
       if(image_pub.getNumSubscribers()) {
         cv::Mat frame = cv::Mat(poses_msg->image_h, poses_msg->image_w, CV_8UC3, cv::Scalar::all(255));
