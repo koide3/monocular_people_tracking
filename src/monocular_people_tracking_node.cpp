@@ -56,6 +56,7 @@ private:
           return;
       }
 
+      // extract neck & ankles detections from pose msg
       std::vector<Observation::Ptr> observations;
       observations.reserve(poses_msg->persons.size());
       for(const auto& person : poses_msg->persons) {
@@ -74,20 +75,22 @@ private:
             }
         }
 
-        auto observation = std::make_shared<Observation>(neck, lankle, rankle, camera_info_msg);
+        auto observation = std::make_shared<Observation>(private_nh, neck, lankle, rankle, camera_info_msg);
         if(observation->is_valid()) {
           observations.push_back(observation);
         }
       }
 
       if(!people_tracker) {
-        people_tracker.reset(new PeopleTracker(tf_listener, poses_msg->header.frame_id, camera_info_msg));
+        people_tracker.reset(new PeopleTracker(private_nh, tf_listener, poses_msg->header.frame_id, camera_info_msg));
       }
 
+      // update the tracker
       const auto& stamp = poses_msg->header.stamp;
       people_tracker->predict(stamp);
       people_tracker->correct(stamp, observations);
 
+      // publish visualization msgs
       if(image_pub.getNumSubscribers()) {
         cv::Mat frame = cv::Mat(poses_msg->image_h, poses_msg->image_w, CV_8UC3, cv::Scalar::all(255));
         cv_bridge::CvImage cv_image(poses_msg->header, "bgr8");
@@ -137,9 +140,9 @@ private:
 
       const auto& color = color_palette[person->id() % color_palette.size()];
       std_msgs::ColorRGBA rgba;
-      rgba.r = color[2] / 255.0;
-      rgba.g = color[1] / 255.0;
-      rgba.b = color[0] / 255.0;
+      rgba.r = color[2] / 255.0f;
+      rgba.g = color[1] / 255.0f;
+      rgba.b = color[0] / 255.0f;
       rgba.a = 0.5f;
 
       auto& lines = markers->markers[0];

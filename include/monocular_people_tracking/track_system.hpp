@@ -2,6 +2,7 @@
 #define MONOCULAR_PEOPLE_TRACKING_TRACKSYSTEM_HPP
 
 #include <Eigen/Dense>
+#include <ros/node_handle.h>
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
 #include <sensor_msgs/CameraInfo.h>
@@ -12,13 +13,18 @@ class TrackSystem {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  TrackSystem(const std::shared_ptr<tf::TransformListener>& tf_listener, const std::string& camera_frame_id, const sensor_msgs::CameraInfoConstPtr& camera_info_msg)
+  TrackSystem(ros::NodeHandle& private_nh, const std::shared_ptr<tf::TransformListener>& tf_listener, const std::string& camera_frame_id, const sensor_msgs::CameraInfoConstPtr& camera_info_msg)
     : camera_frame_id(camera_frame_id),
       tf_listener(tf_listener)
   {
     dt = 0.1;
 
-    measurement_noise = Eigen::Matrix4f::Identity() * 10 * 10;
+    measurement_noise = Eigen::Matrix4f::Identity() * private_nh.param<double>("measurement_noise_pix_cov", 100);
+    process_noise.setIdentity();
+    process_noise.middleRows(0, 2) *= private_nh.param<double>("process_noise_pos_cov", 0.1);
+    process_noise(2, 2) = private_nh.param<double>("process_noise_height_cov", 1e-10);
+    process_noise.middleRows(3, 2) *= private_nh.param<double>("process_noise_vel_cov", 0.1);
+
 
     camera_matrix = Eigen::Map<const Eigen::Matrix3d>(camera_info_msg->K.data()).transpose().cast<float>();
     update_matrices(ros::Time(0));
@@ -71,11 +77,6 @@ public:
   }
 
   Eigen::MatrixXf processNoiseCov() const {
-    Eigen::MatrixXf process_noise = Eigen::MatrixXf::Identity(5, 5);
-    process_noise.middleRows(0, 2) *= 1e-1;
-    process_noise(2, 2) = 1e-10;
-    process_noise.middleRows(3, 2) *= 1e-1;
-
     return process_noise;
   }
 
@@ -98,6 +99,7 @@ public:
   std::shared_ptr<tf::TransformListener> tf_listener;
 
   Eigen::Matrix4f measurement_noise;
+  Eigen::Matrix<float, 5, 5> process_noise;
 };
 
 }

@@ -16,12 +16,14 @@ namespace kkl {
  * NearestNeighborAssociation
  *
 ******************************************/
-template<typename Tracker, typename Observation>
+template<typename Tracker, typename Observation, typename Distance>
 class NearestNeighborAssociation : public DataAssociation<Tracker, Observation> {
   typedef typename DataAssociation<Tracker, Observation>::Association Association;
 public:
   // constructor, destructor
-  NearestNeighborAssociation() {}
+  NearestNeighborAssociation(const Distance& distance)
+      : distance(distance)
+  {}
   virtual ~NearestNeighborAssociation() {}
 
   // associate
@@ -35,7 +37,7 @@ public:
 
     for(int i=0; i<trackers.size(); i++) {
       for(int j=0; j<observations.size(); j++) {
-        auto dist = distance<Tracker, Observation>(trackers[i], observations[j]);
+        auto dist = distance(trackers[i], observations[j]);
         if(dist) {
           all_associations.push_back(Association(i, j, dist.get()));
         }
@@ -56,6 +58,9 @@ public:
 
     return associations;
   }
+
+private:
+  Distance distance;
 };
 
 	}
