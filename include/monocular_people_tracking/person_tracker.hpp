@@ -62,6 +62,8 @@ public:
 
   double trace() const;
   Eigen::Vector3f pos() const;
+  Eigen::Vector2f vel() const;
+  Eigen::MatrixXf cov() const;
 
   long correction_count() const {
     return correction_count_;

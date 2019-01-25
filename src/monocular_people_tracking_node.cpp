@@ -88,6 +88,10 @@ private:
       people_tracker->predict(stamp);
       people_tracker->correct(stamp, observations);
 
+      if(tracks_pub.getNumSubscribers()) {
+        tracks_pub.publish(create_msgs(poses_msg->header.stamp));
+      }
+
       if(image_pub.getNumSubscribers()) {
         cv::Mat frame = cv::Mat(poses_msg->image_h, poses_msg->image_w, CV_8UC3, cv::Scalar::all(255));
         cv_bridge::CvImage cv_image(poses_msg->header, "bgr8");
@@ -98,6 +102,39 @@ private:
       if(markers_pub.getNumSubscribers()) {
         markers_pub.publish(create_markers(poses_msg->header.stamp));
       }
+  }
+
+  monocular_people_tracking::TrackArrayPtr create_msgs(const ros::Time& stamp) const {
+    monocular_people_tracking::TrackArrayPtr msgs(new monocular_people_tracking::TrackArray());
+    if(!people_tracker) {
+      return msgs;
+    }
+    msgs->header.stamp = stamp;
+    msgs->header.frame_id = "odom";
+    for(const auto& person : people_tracker->get_people()) {
+      if(!person->is_valid()) {
+        continue;
+      }
+      auto& tracks = msgs->tracks;
+      monocular_people_tracking::Track tr;
+      Eigen::Vector3f pos = person->pos();
+      Eigen::Vector2f vel = person->vel();
+      tr.id = person->id();
+      tr.age = 0;
+      tr.pos.x = pos.x();
+      tr.pos.y = pos.y();
+      tr.pos.z = 0;
+      tr.height = pos.z();
+      tr.vel.x = vel.x();
+      tr.vel.y = vel.y();
+      tr.vel.z = 0;
+      for(auto i = 0; i < person->cov().size(); i++) {
+        tr.cov[i] = person->cov().array()(i);
+      }
+      tracks.push_back(tr); 
+    }
+
+    return msgs;
   }
 
   visualization_msgs::MarkerArrayConstPtr create_markers(const ros::Time& stamp) const {
