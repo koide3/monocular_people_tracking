@@ -6,6 +6,7 @@
 #include <boost/optional.hpp>
 
 #include <ros/node_handle.h>
+#include <tfpose_ros/Person.h>
 #include <sensor_msgs/CameraInfo.h>
 
 namespace monocular_people_tracking {
@@ -34,7 +35,9 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   using Ptr = std::shared_ptr<Observation>;
 
-  Observation(ros::NodeHandle& private_nh, const Joint& neck_, const Joint& lankle, const Joint& rankle, const sensor_msgs::CameraInfoConstPtr& camera_info_msg) {
+  Observation(ros::NodeHandle& private_nh, const Joint& neck_, const Joint& lankle, const Joint& rankle, const sensor_msgs::CameraInfoConstPtr& camera_info_msg, const tfpose_ros::Person& person_msg)
+      : person_msg(person_msg)
+  {
     const double confidence_thresh = private_nh.param<double>("detection_confidence_thresh", 0.3);
 
     if(neck_.confidence > confidence_thresh) {
@@ -84,6 +87,8 @@ public:
   Eigen::Vector2f neck_vector() const {
     return  *neck;
   }
+
+  const tfpose_ros::Person& person_msg;
 
   bool close2border;
   boost::optional<Eigen::Vector2f> neck;

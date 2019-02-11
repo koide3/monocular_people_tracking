@@ -24,6 +24,7 @@ PersonTracker::PersonTracker(const std::shared_ptr<TrackSystem>& track_system, c
 
   prev_stamp = stamp;
   correction_count_ = 0;
+  last_associated = nullptr;
 }
 
 PersonTracker::~PersonTracker() {
@@ -32,6 +33,7 @@ PersonTracker::~PersonTracker() {
 
 void PersonTracker::predict(const ros::Time& stamp) {
   expected_measurement_dist = boost::none;
+  last_associated = nullptr;
 
   ukf->system->set_dt((stamp - prev_stamp).toSec());
   prev_stamp = stamp;
@@ -41,6 +43,7 @@ void PersonTracker::predict(const ros::Time& stamp) {
 
 void PersonTracker::correct(const ros::Time& stamp, const Observation::Ptr& observation) {
   expected_measurement_dist = boost::none;
+  last_associated = observation;
   correction_count_ ++;
 
   if(observation->ankle) {

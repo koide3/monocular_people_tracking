@@ -75,7 +75,7 @@ private:
             }
         }
 
-        auto observation = std::make_shared<Observation>(private_nh, neck, lankle, rankle, camera_info_msg);
+        auto observation = std::make_shared<Observation>(private_nh, neck, lankle, rankle, camera_info_msg, person);
         if(observation->is_valid()) {
           observations.push_back(observation);
         }
@@ -134,6 +134,13 @@ private:
       for(auto i = 0; i < person->cov().size(); i++) {
         tr.cov[i] = person->cov().array()(i);
       }
+
+      auto associated = person->get_last_associated();
+      if(associated) {
+          tr.associated.resize(1);
+          tr.associated[0] = associated->person_msg;
+      }
+
       tracks.push_back(tr); 
     }
 

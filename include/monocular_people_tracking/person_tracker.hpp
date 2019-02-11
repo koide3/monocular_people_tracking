@@ -30,6 +30,8 @@ public:
   void predict(const ros::Time& stamp);
   void correct(const ros::Time& stamp, const Observation::Ptr& observation);
 
+  Observation::Ptr get_last_associated() const { return last_associated; }
+
   double prob(const Eigen::Vector4f& x) const {
     std::pair<Eigen::VectorXf, Eigen::MatrixXf> dist = expected_measurement_distribution();
     return kkl::math::gaussianProbMul<float, 4>(dist.first, dist.second, x);
@@ -82,6 +84,7 @@ private:
   long correction_count_;
   ros::Time prev_stamp;
 
+  Observation::Ptr last_associated;
   std::unique_ptr<UnscentedKalmanFilter> ukf;
   mutable boost::optional<std::pair<Eigen::VectorXf, Eigen::MatrixXf>> expected_measurement_dist;
 };
