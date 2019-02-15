@@ -29,34 +29,30 @@ boost::optional<double> distance(const Tracker& tracker, const Observation&  obs
 template<typename Tracker, typename Observation>
 class DataAssociation {
 public:
-	/***************************
-	 * Association
-	 * 
-  ***************************/
-	struct Association {
-	public:
-		Association(int tracker, int observation, double distance)
-			: tracker(tracker),
-			observation(observation),
-			distance( distance )
-		{}
+  struct Association {
+  public:
+    Association(int tracker, int observation, double distance)
+    : tracker(tracker),
+      observation(observation),
+      distance( distance )
+    {}
 
     bool operator< (const Association& rhs) const {
       return distance < rhs.distance;
     }
 
-		int tracker;
-		int observation;
+    int tracker;
+    int observation;
 
-		double distance;
-	};
+    double distance;
+  };
 
-	// constructor, destructor
-	DataAssociation() {}
-	virtual ~DataAssociation() {}
+  // constructor, destructor
+  DataAssociation() {}
+  virtual ~DataAssociation() {}
 
-	// associate
-	virtual std::vector<Association> associate(const std::vector<Tracker>& trackers, const std::vector<Observation>& observations) = 0;
+  // associate
+  virtual std::vector<Association> associate(const std::vector<Tracker>& trackers, const std::vector<Observation>& observations) = 0;
 };
 
 	}

@@ -5,6 +5,8 @@
 #include <Eigen/Dense>
 #include <boost/optional.hpp>
 
+#include <ros/node_handle.h>
+#include <tfpose_ros/Person.h>
 #include <sensor_msgs/CameraInfo.h>
 
 namespace monocular_people_tracking {
@@ -33,8 +35,10 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   using Ptr = std::shared_ptr<Observation>;
 
-  Observation(const Joint& neck_, const Joint& lankle, const Joint& rankle, const sensor_msgs::CameraInfoConstPtr& camera_info_msg) {
-    const double confidence_thresh = 0.3;
+  Observation(ros::NodeHandle& private_nh, const Joint& neck_, const Joint& lankle, const Joint& rankle, const sensor_msgs::CameraInfoConstPtr& camera_info_msg, const tfpose_ros::Person& person_msg)
+      : person_msg(person_msg)
+  {
+    const double confidence_thresh = private_nh.param<double>("detection_confidence_thresh", 0.3);
 
     if(neck_.confidence > confidence_thresh) {
       neck = Eigen::Vector2f(neck_.x, neck_.y);
@@ -50,8 +54,8 @@ public:
 
     close2border = false;
 
-    int border_thresh_w = 100;
-    int border_thresh_h = 25;
+    int border_thresh_w = private_nh.param<int>("detection_border_thresh_w", 100);
+    int border_thresh_h = private_nh.param<int>("detection_border_thresh_h", 25);;
     if(neck) {
       if(neck->x() < border_thresh_w || neck->x() > camera_info_msg->width - border_thresh_w ||
          neck->y() < border_thresh_h || neck->y() > camera_info_msg->height - border_thresh_h )
@@ -83,6 +87,8 @@ public:
   Eigen::Vector2f neck_vector() const {
     return  *neck;
   }
+
+  const tfpose_ros::Person& person_msg;
 
   bool close2border;
   boost::optional<Eigen::Vector2f> neck;

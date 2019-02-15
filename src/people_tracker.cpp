@@ -5,48 +5,16 @@
 
 #include <monocular_people_tracking/track_system.hpp>
 
-namespace kkl {
-  namespace alg {
-
-template<>
-boost::optional<double> distance(const monocular_people_tracking::PersonTracker::Ptr& tracker, const monocular_people_tracking::Observation::Ptr& observation) {
-  if(observation->ankle) {
-    double distance = (tracker->expected_measurement_distribution().first - observation->neck_ankle_vector()).norm();
-    if(!observation->min_distance){
-      observation->min_distance = distance;
-    } else {
-      observation->min_distance = std::min(distance, *observation->min_distance);
-    }
-
-    if(distance > 200) {
-      return boost::none;
-    }
-
-    double sq_maha = tracker->squared_mahalanobis_distance(observation->neck_ankle_vector());
-    if(sq_maha > pow(3.0, 2)) {
-      return boost::none;
-    }
-    return -tracker->prob(observation->neck_ankle_vector());
-  }
-
-  double sq_maha = tracker->squared_mahalanobis_distance(observation->neck_vector());
-  if(sq_maha > pow(3.0, 2)) {
-    return boost::none;
-  }
-
-  return -tracker->prob(observation->neck_vector()) + 1.0;
-}
-  }
-}
-
 
 namespace monocular_people_tracking {
 
-PeopleTracker::PeopleTracker(const std::shared_ptr<tf::TransformListener>& tf_listener, const std::string& camera_frame_id, const sensor_msgs::CameraInfoConstPtr& camera_info_msg) {
+PeopleTracker::PeopleTracker(ros::NodeHandle& private_nh, const std::shared_ptr<tf::TransformListener>& tf_listener, const std::string& camera_frame_id, const sensor_msgs::CameraInfoConstPtr& camera_info_msg) {
   id_gen = 0;
-  data_association.reset(new kkl::alg::NearestNeighborAssociation<PersonTracker::Ptr, Observation::Ptr>());
+  remove_trace_thresh = private_nh.param<double>("tracking_remove_trace_thresh", 5.0);
+  dist_to_exists_thresh = private_nh.param<double>("tracking_newtrack_dist2exists_thersh", 100.0);
 
-  track_system.reset(new TrackSystem(tf_listener, camera_frame_id, camera_info_msg));
+  data_association.reset(new kkl::alg::NearestNeighborAssociation<PersonTracker::Ptr, Observation::Ptr, AssociationDistance>(AssociationDistance(private_nh)));
+  track_system.reset(new TrackSystem(private_nh, tf_listener, camera_frame_id, camera_info_msg));
 }
 
 PeopleTracker::~PeopleTracker() {
@@ -74,7 +42,7 @@ void PeopleTracker::correct(const ros::Time& stamp, const std::vector<Observatio
 
   for(int i=0; i<observations.size(); i++) {
     if(!associated[i] && observations[i]->ankle) {
-      if(observations[i]->min_distance && *observations[i]->min_distance < 80) {
+      if(observations[i]->min_distance && *observations[i]->min_distance < dist_to_exists_thresh) {
         continue;
       }
 
@@ -89,7 +57,7 @@ void PeopleTracker::correct(const ros::Time& stamp, const std::vector<Observatio
   }
 
   auto remove_loc = std::partition(people.begin(), people.end(), [&](const PersonTracker::Ptr& tracker) {
-    return tracker->trace() < 5.0;
+    return tracker->trace() < remove_trace_thresh;
   });
   removed_people.clear();
   std::copy(remove_loc, people.end(), std::back_inserter(removed_people));
