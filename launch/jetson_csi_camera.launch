@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="sim" default="false"/>
+
+	<param name="/camera/camera_nodelet/frame_rate" value="15"/>
+
+	<!-- Sensor parameters -->
+	<include file="$(find jetson_csi_cam)/jetson_csi_cam.launch" if="$(eval not arg('sim'))">
+		<arg name="fps" value="15"/>
+	</include>
+
+	<group ns="csi_cam_0">
+		<node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager"/>
+
+		<!--camera_nodelet_manager-->
+		<node pkg="nodelet" type="nodelet" name="rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="image_raw"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<!-- qhd -->
+		<node pkg="nodelet" type="nodelet" name="qhd_resize" args="load image_proc/resize camera_nodelet_manager">
+			<remap from="image" to="image_raw"/>
+			<remap from="camera_info" to="camera_info"/>
+			<remap from="~image" to="qhd/image_raw"/>
+			<remap from="~camera_info" to="qhd/camera_info"/>
+			<param name="use_scale" value="1"/>
+			<param name="scale_width" value="0.5"/>
+			<param name="scale_height" value="0.5"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<node pkg="nodelet" type="nodelet" name="qhd_rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="qhd/image_raw"/>
+			<remap from="camera_info" to="qhd/camera_info"/>
+			<remap from="image_rect" to="qhd/image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<!-- sd -->
+		<node pkg="nodelet" type="nodelet" name="sd_resize" args="load image_proc/resize camera_nodelet_manager">
+			<remap from="image" to="image_raw"/>
+			<remap from="camera_info" to="camera_info"/>
+			<remap from="~image" to="sd/image_raw"/>
+			<remap from="~camera_info" to="sd/camera_info"/>
+			<param name="use_scale" value="1"/>
+			<param name="scale_width" value="0.3333"/>
+			<param name="scale_height" value="0.3333"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<node pkg="nodelet" type="nodelet" name="sd_rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="sd/image_raw"/>
+			<remap from="camera_info" to="sd/camera_info"/>
+			<remap from="image_rect" to="sd/image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+	</group>
+</launch>

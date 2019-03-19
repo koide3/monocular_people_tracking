@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="image_topic" default="/camera/sd/image_rect"/>
+
+	<arg name="gpu_id" default="0"/>
+	<arg name="model" default="mobilenet_v2_small"/>
+	<arg name="resolution" default="368x368"/>
+
+	<node name="pose_estimator" pkg="tfpose_ros" type="broadcaster_ros.py" output="screen" required="true">
+		<env name="CUDA_VISIBLE_DEVICES" value="$(arg gpu_id)"/>
+		<param name="camera" value="$(arg image_topic)"/>
+		<param name="model" value="$(arg model)"/>
+		<param name="resolution" value="$(arg resolution)"/>
+	</node>
+
+</launch>

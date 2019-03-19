@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="sim" default="false"/>
+
+	<param name="/camera/camera_nodelet/frame_rate" value="15"/>
+
+	<!-- Sensor parameters -->
+	<include file="$(find pointgrey_camera_driver)/launch/camera.launch" if="$(eval not arg('sim'))">
+		<!-- left:15190458, right:15190575 -->
+		<arg name="camera_serial" value="15190458"/>
+		<arg name="calibrated" value="1"/>
+	</include>
+
+	<node pkg="image_transport" type="republish" name="decompress" args="compressed in:=image_mono raw out:=image_mono" if="$(arg sim)"/>
+
+	<group ns="camera">
+		<node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" if="$(arg sim)"/>
+
+		<!--camera_nodelet_manager-->
+		<node pkg="nodelet" type="nodelet" name="pointgrey_rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="/camera/image_mono"/>
+			<remap from="camera_info" to="/camera/camera_info"/>
+			<remap from="image_rect" to="/camera/image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<!-- qhd -->
+		<node pkg="nodelet" type="nodelet" name="pointgrey_qhd_resize" args="load image_proc/resize camera_nodelet_manager">
+			<remap from="image" to="/camera/image_mono"/>
+			<remap from="camera_info" to="/camera/camera_info"/>
+			<remap from="~image" to="/camera/qhd/image_mono"/>
+			<remap from="~camera_info" to="/camera/qhd/camera_info"/>
+			<param name="use_scale" value="1"/>
+			<param name="scale_width" value="0.5"/>
+			<param name="scale_height" value="0.5"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<node pkg="nodelet" type="nodelet" name="pointgrey_qhd_rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="/camera/qhd/image_mono"/>
+			<remap from="camera_info" to="/camera/qhd/camera_info"/>
+			<remap from="image_rect" to="/camera/qhd/image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<!-- sd -->
+		<node pkg="nodelet" type="nodelet" name="pointgrey_sd_resize" args="load image_proc/resize camera_nodelet_manager">
+			<remap from="image" to="/camera/image_mono"/>
+			<remap from="camera_info" to="/camera/camera_info"/>
+			<remap from="~image" to="/camera/sd/image_mono"/>
+			<remap from="~camera_info" to="/camera/sd/camera_info"/>
+			<param name="use_scale" value="1"/>
+			<param name="scale_width" value="0.3333"/>
+			<param name="scale_height" value="0.3333"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<node pkg="nodelet" type="nodelet" name="pointgrey_sd_rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="/camera/sd/image_mono"/>
+			<remap from="camera_info" to="/camera/sd/camera_info"/>
+			<remap from="image_rect" to="/camera/sd/image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+	</group>
+</launch>
