@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="sim" default="false"/>
+
+	<group ns="top_front_camera">
+		<node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" if="$(arg sim)"/>
+
+		<node pkg="image_transport" type="republish" name="decompress" args="compressed in:=image_raw raw out:=image_raw" if="$(arg sim)"/>
+
+		<!--camera_nodelet_manager-->
+		<node pkg="nodelet" type="nodelet" name="rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="image_raw"/>
+			<remap from="camera_info" to="camera_info"/>
+			<remap from="image_rect" to="image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<!-- qhd -->
+		<node pkg="nodelet" type="nodelet" name="qhd_resize" args="load image_proc/resize camera_nodelet_manager">
+			<remap from="image" to="image_raw"/>
+			<remap from="camera_info" to="camera_info"/>
+			<remap from="~image" to="qhd/image_raw"/>
+			<remap from="~camera_info" to="qhd/camera_info"/>
+			<param name="use_scale" value="1"/>
+			<param name="scale_width" value="0.5"/>
+			<param name="scale_height" value="0.5"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<node pkg="nodelet" type="nodelet" name="qhd_rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="qhd/image_raw"/>
+			<remap from="camera_info" to="qhd/camera_info"/>
+			<remap from="image_rect" to="qhd/image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+	</group>
+</launch>

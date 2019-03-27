@@ -136,10 +136,29 @@ private:
         tr.cov[i] = person->cov().array()(i);
       }
 
+      auto dist = person->expected_measurement_distribution();
+      for(size_t i=0; i<dist.first.size(); i++) {
+          tr.expected_measurement_mean[i] = dist.first[i];
+      }
+      for(size_t i=0; i<dist.second.rows(); i++) {
+          for(size_t j=0; j<dist.second.cols(); j++) {
+              tr.expected_measurement_cov[i * dist.second.cols() + j] = dist.second(i, j);
+          }
+      }
+
       auto associated = person->get_last_associated();
       if(associated) {
           tr.associated.resize(1);
           tr.associated[0] = associated->person_msg;
+
+          tr.associated_neck_ankle.resize(2);
+          tr.associated_neck_ankle[0].x = associated->neck->x();
+          tr.associated_neck_ankle[0].y = associated->neck->y();
+          tr.associated_neck_ankle[0].z = 0.0;
+
+          tr.associated_neck_ankle[1].x = associated->ankle->x();
+          tr.associated_neck_ankle[1].y = associated->ankle->y();
+          tr.associated_neck_ankle[1].z = 0.0;
       }
 
       tracks.push_back(tr); 
