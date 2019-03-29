@@ -26,9 +26,9 @@ public:
   PeopleTracker(ros::NodeHandle& private_nh, const std::shared_ptr<tf::TransformListener>& tf_listener, const std::string& camera_frame_id, const sensor_msgs::CameraInfoConstPtr& camera_info_msg);
   ~PeopleTracker();
 
-  void predict(const ros::Time& stamp);
+  void predict(ros::NodeHandle& nh, const ros::Time& stamp);
 
-  void correct(const ros::Time& stamp, const std::vector<Observation::Ptr>& observations);
+  void correct(ros::NodeHandle& nh, const ros::Time& stamp, const std::vector<Observation::Ptr>& observations);
 
   const std::vector<PersonTracker::Ptr>& get_people() const { return people; }
 

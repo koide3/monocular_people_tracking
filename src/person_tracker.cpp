@@ -9,15 +9,17 @@
 
 namespace monocular_people_tracking {
 
-PersonTracker::PersonTracker(const std::shared_ptr<TrackSystem>& track_system, const ros::Time& stamp, long id, const Eigen::Vector4f& neck_ankle)
+PersonTracker::PersonTracker(ros::NodeHandle& nh, const std::shared_ptr<TrackSystem>& track_system, const ros::Time& stamp, long id, const Eigen::Vector4f& neck_ankle)
   : id_(id)
 {
+  validation_correction_count = nh.param<int>("validation_correction_cound", 5);
+
   Eigen::VectorXf mean = Eigen::VectorXf::Zero(5);
   // mean.head<3>() = track_system->transform_footprint2odom(Eigen::Vector3f(2.0f, 0.0f, 1.7f));
   mean.head<3>() = estimate_init_state(track_system, neck_ankle);
   mean[2] = 1.6f;
 
-  Eigen::MatrixXf cov = Eigen::MatrixXf::Identity(5, 5);
+  Eigen::MatrixXf cov = Eigen::MatrixXf::Identity(5, 5) * nh.param<double>("init_cov_scale", 1.0);
   cov(2, 2) = 1e-1f;
 
   ukf.reset(new UnscentedKalmanFilter(track_system, mean, cov));

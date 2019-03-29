@@ -12,6 +12,8 @@
 	<group ns="csi_cam_0">
 		<node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager"/>
 
+		<node pkg="image_transport" type="republish" name="decompress" args="compressed in:=image_raw raw out:=image_raw" if="$(arg sim)"/>
+
 		<!--camera_nodelet_manager-->
 		<node pkg="nodelet" type="nodelet" name="rectify" args="load image_proc/rectify camera_nodelet_manager">
 			<remap from="image_mono" to="image_raw"/>

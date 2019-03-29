@@ -87,8 +87,8 @@ private:
 
       // update the tracker
       const auto& stamp = poses_msg->header.stamp;
-      people_tracker->predict(stamp);
-      people_tracker->correct(stamp, observations);
+      people_tracker->predict(private_nh, stamp);
+      people_tracker->correct(private_nh, stamp, observations);
 
       if(tracks_pub.getNumSubscribers()) {
         tracks_pub.publish(create_msgs(poses_msg->header.stamp));

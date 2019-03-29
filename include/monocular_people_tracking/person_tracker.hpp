@@ -24,7 +24,7 @@ public:
   using Ptr = std::shared_ptr<PersonTracker>;
   using UnscentedKalmanFilter = kkl::alg::UnscentedKalmanFilterX<float, TrackSystem>;
 
-  PersonTracker(const std::shared_ptr<TrackSystem>& track_system, const ros::Time& stamp, long id, const Eigen::Vector4f& neck_ankle);
+  PersonTracker(ros::NodeHandle& nh, const std::shared_ptr<TrackSystem>& track_system, const ros::Time& stamp, long id, const Eigen::Vector4f& neck_ankle);
   ~PersonTracker();
 
   void predict(const ros::Time& stamp);
@@ -72,7 +72,7 @@ public:
   }
 
   bool is_valid() const {
-    return correction_count() > 5;
+    return correction_count() > validation_correction_count;
 
   }
 
@@ -82,6 +82,7 @@ private:
 private:
   long id_;
   long correction_count_;
+  long validation_correction_count;
   ros::Time prev_stamp;
 
   Observation::Ptr last_associated;

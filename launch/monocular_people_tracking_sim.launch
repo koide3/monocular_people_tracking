@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="camera_name" default="/csi_cam_0"/>
+
+  <node pkg="monocular_people_tracking" type="monocular_people_tracking_node" name="monocular_people_tracking">
+    <remap from="camera_info" to="$(arg camera_name)/camera_info"/>
+
+    <!-- detection parameters -->
+    <param name="detection_confidence_thresh" value="0.25"/>
+    <param name="detection_border_thresh_w" value="100"/>
+    <param name="detection_border_thresh_h" value="25"/>
+
+    <!-- UKF parameters -->
+    <param name="measurement_noise_pix_cov" value="300"/>
+    <param name="process_noise_pos_cov" value="0.1"/>
+    <param name="process_noise_vel_cov" value="0.1"/>
+    <param name="process_noise_height_cov" value="1e-10"/>
+
+    <!-- tracking parameters -->
+    <param name="association_maha_sq_thresh" value="90.0"/>
+    <param name="association_neck_ankle_max_dist" value="8192"/>
+    <param name="association_neck_max_dist" value="8192"/>
+    <param name="tracking_remove_trace_thresh" value="90"/>
+    <param name="tracking_newtrack_dist2exists_thersh" value="8192"/>
+  </node>
+
+
+  <node pkg="monocular_person_following" type="visualization.py" name="visualization_node" output="screen">
+    <remap from="image_rect" to="$(arg camera_name)/image_rect"/>
+    <param name="show" value="false"/>
+  </node>
+</launch>
