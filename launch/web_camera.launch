@@ -2,8 +2,15 @@
 <launch>
 	<arg name="sim" default="false"/>
 
+	<node pkg="usb_cam" type="usb_cam_node" name="top_front_camera" unless="$(arg sim)">
+		<param name="camera_name" value="top_front_camera"/>
+		<param name="camera_frame_id" value="top_front_camera_optical_frame"/>
+		<param name="image_width" value="1920"/>
+		<param name="image_height" value="1080"/>
+	</node>
+
 	<group ns="top_front_camera">
-		<node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" if="$(arg sim)"/>
+		<node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager"/>
 
 		<node pkg="image_transport" type="republish" name="decompress" args="compressed in:=image_raw raw out:=image_raw" if="$(arg sim)"/>
 
@@ -29,6 +36,24 @@
 			<remap from="image_mono" to="qhd/image_raw"/>
 			<remap from="camera_info" to="qhd/camera_info"/>
 			<remap from="image_rect" to="qhd/image_rect"/>
+			<param name="queue_size" value="5"/>
+		</node>
+
+		<!-- sd -->
+		<node pkg="nodelet" type="nodelet" name="sd_resize" args="load image_proc/resize camera_nodelet_manager">
+			<remap from="image" to="image_raw"/>
+			<remap from="camera_info" to="camera_info"/>
+			<remap from="~image" to="sd/image_raw"/>
+			<remap from="~camera_info" to="sd/camera_info"/>
+			<param name="use_scale" value="1"/>
+			<param name="scale_width" value="0.25"/>
+			<param name="scale_height" value="0.25"/>
+			<param name="queue_size" value="5"/>
+		</node>
+		<node pkg="nodelet" type="nodelet" name="sd_rectify" args="load image_proc/rectify camera_nodelet_manager">
+			<remap from="image_mono" to="sd/image_raw"/>
+			<remap from="camera_info" to="sd/camera_info"/>
+			<remap from="image_rect" to="sd/image_rect"/>
 			<param name="queue_size" value="5"/>
 		</node>
 	</group>
