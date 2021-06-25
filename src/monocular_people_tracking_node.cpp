@@ -160,7 +160,7 @@ private:
           tr.associated_neck_ankle[1].z = 0.0;
       }
 
-      tracks.push_back(tr); 
+      tracks.push_back(tr);
     }
 
     return msgs;
@@ -250,8 +250,8 @@ private:
       }
 
       auto dist = person->expected_measurement_distribution();
-      cv::putText(canvas, (boost::format("id:%d") % person->id()).str(), cv::Point(dist.first[0] - 15, dist.first[1] - 25), CV_FONT_HERSHEY_PLAIN, 1.0, cv::Scalar::all(255));
-      cv::putText(canvas, (boost::format("tf:%.2f") % person->trace()).str(), cv::Point(dist.first[0] - 15, dist.first[1] - 15), CV_FONT_HERSHEY_PLAIN, 1.0, cv::Scalar::all(255));
+      cv::putText(canvas, (boost::format("id:%d") % person->id()).str(), cv::Point(dist.first[0] - 15, dist.first[1] - 25), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar::all(255));
+      cv::putText(canvas, (boost::format("tf:%.2f") % person->trace()).str(), cv::Point(dist.first[0] - 15, dist.first[1] - 15), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar::all(255));
 
       Eigen::Matrix2f neck_cov = dist.second.block<2, 2>(0, 0);
       Eigen::Matrix2f ankle_cov = dist.second.block<2, 2>(2, 2);
